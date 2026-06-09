@@ -151,3 +151,8 @@ Users add the app from Safari via Share → "Add to Home Screen", getting an app
 - Native iOS/Android apps.
 - Task editing modal (the HTML version only supports create/delete/toggle — parity preserved).
 - Password reset flow (can be added later via Supabase's built-in recovery).
+
+## Implementation deviations (recorded post-build)
+
+- **Create/edit mutations are pessimistic, not optimistic.** Project create/edit and task add await the Supabase insert (for the server-generated UUID) before updating the UI, with a busy-guarded modal. Toggle/delete/status/notes remain optimistic with targeted reverts.
+- **Service worker uses Workbox precache + autoUpdate** (vite-plugin-pwa defaults) rather than network-first: build assets are precached and refreshed automatically on deploy; no API data is ever cached.

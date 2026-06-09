@@ -24,7 +24,7 @@ export default function LoginScreen() {
     if (err) {
       setError(ERROR_MESSAGES[err.message] || 'Error: ' + err.message)
     } else if (mode === 'signup' && !data.session) {
-      // Email confirmation is enabled on the Supabase project
+      // Fallback if email confirmation is enabled on the Supabase project
       setInfo('Cuenta creada — revisá tu email para confirmarla')
     }
     // On success with a session, AuthContext picks it up and the app renders

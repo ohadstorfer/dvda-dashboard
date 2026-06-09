@@ -11,6 +11,7 @@ export function useProjects(userId) {
   const [loadError, setLoadError] = useState(false)
   const toast = useToast()
   const notesTimers = useRef({})
+  const pendingNotes = useRef({})
 
   const refetch = useCallback(async () => {
     setLoadError(false)
@@ -27,7 +28,13 @@ export function useProjects(userId) {
 
   useEffect(() => {
     const timers = notesTimers.current
-    return () => { Object.values(timers).forEach(clearTimeout) }
+    const pending = pendingNotes.current
+    return () => {
+      Object.values(timers).forEach(clearTimeout)
+      Object.entries(pending).forEach(([id, notes]) => {
+        supabase.from('projects').update({ notes }).eq('id', id).then(() => {})
+      })
+    }
   }, [])
 
   const createProject = useCallback(async (fields) => {
@@ -53,8 +60,8 @@ export function useProjects(userId) {
 
   const deleteProject = useCallback(async (id) => {
     const idx = projects.findIndex(p => p.id === id)
-    const removed = projects[idx]
     if (idx < 0) return
+    const removed = projects[idx]
     setProjects(ps => ps.filter(p => p.id !== id))
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) { setProjects(ps => { const next = ps.slice(); next.splice(Math.min(idx, next.length), 0, removed); return next }); toast(SAVE_ERROR); return }
@@ -72,8 +79,10 @@ export function useProjects(userId) {
 
   const saveNotes = useCallback((id, notes) => {
     setProjects(ps => ps.map(p => p.id === id ? { ...p, notes } : p))
+    pendingNotes.current[id] = notes
     clearTimeout(notesTimers.current[id])
     notesTimers.current[id] = setTimeout(async () => {
+      delete pendingNotes.current[id]
       const { error } = await supabase.from('projects').update({ notes }).eq('id', id)
       if (error) toast(SAVE_ERROR)
     }, 800)
