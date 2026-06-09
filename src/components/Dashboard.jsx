@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useProjects } from '../hooks/useProjects'
 import Sidebar from './Sidebar'
 import ListView from './ListView'
+import ProjectDetail from './ProjectDetail'
 
 export default function Dashboard({ userId }) {
   const [view, setView] = useState('all')
@@ -12,6 +13,12 @@ export default function Dashboard({ userId }) {
   function handleSetView(v) {
     setView(v)
     setSelectedId(null)
+  }
+
+  function handleDeleteProject(id) {
+    if (!confirm('¿Eliminar este proyecto y todas sus tareas?')) return
+    setSelectedId(null)
+    data.deleteProject(id)
   }
 
   if (data.loading) return null
@@ -35,6 +42,18 @@ export default function Dashboard({ userId }) {
               <button className="btn btn-secondary" style={{ marginTop: 12 }} onClick={data.refetch}>Reintentar</button>
             </div>
           </div>
+        ) : selected ? (
+          <ProjectDetail
+            project={selected}
+            onBack={() => setSelectedId(null)}
+            onEdit={() => {}}
+            onDelete={() => handleDeleteProject(selected.id)}
+            onToggleTask={taskId => data.toggleTask(selected.id, taskId)}
+            onDeleteTask={taskId => data.deleteTask(selected.id, taskId)}
+            onNewTask={() => {}}
+            onSaveNotes={notes => data.saveNotes(selected.id, notes)}
+            onChangeStatus={status => data.changeStatus(selected.id, status)}
+          />
         ) : (
           <ListView
             projects={data.projects}
