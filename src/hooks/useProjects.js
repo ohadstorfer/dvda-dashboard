@@ -25,6 +25,11 @@ export function useProjects(userId) {
 
   useEffect(() => { refetch() }, [refetch])
 
+  useEffect(() => {
+    const timers = notesTimers.current
+    return () => { Object.values(timers).forEach(clearTimeout) }
+  }, [])
+
   const createProject = useCallback(async (fields) => {
     const { data, error } = await supabase.from('projects')
       .insert({ user_id: userId, name: fields.name, type: fields.type, status: fields.status, descripcion: fields.desc })
@@ -47,18 +52,21 @@ export function useProjects(userId) {
   }, [toast])
 
   const deleteProject = useCallback(async (id) => {
-    const prev = projects
+    const idx = projects.findIndex(p => p.id === id)
+    const removed = projects[idx]
+    if (idx < 0) return
     setProjects(ps => ps.filter(p => p.id !== id))
     const { error } = await supabase.from('projects').delete().eq('id', id)
-    if (error) { setProjects(prev); toast(SAVE_ERROR); return }
+    if (error) { setProjects(ps => { const next = ps.slice(); next.splice(Math.min(idx, next.length), 0, removed); return next }); toast(SAVE_ERROR); return }
     toast('Proyecto eliminado')
   }, [projects, toast])
 
   const changeStatus = useCallback(async (id, status) => {
-    const prev = projects
+    const original = projects.find(p => p.id === id)?.status
+    if (original === undefined) return
     setProjects(ps => ps.map(p => p.id === id ? { ...p, status } : p))
     const { error } = await supabase.from('projects').update({ status }).eq('id', id)
-    if (error) { setProjects(prev); toast(SAVE_ERROR); return }
+    if (error) { setProjects(ps => ps.map(p => p.id === id ? { ...p, status: original } : p)); toast(SAVE_ERROR); return }
     toast('Estado actualizado')
   }, [projects, toast])
 
@@ -89,21 +97,22 @@ export function useProjects(userId) {
     const task = proj && proj.tasks.find(t => t.id === taskId)
     if (!task) return
     const done = !task.done
-    const prev = projects
     setProjects(ps => ps.map(p => p.id === projId
       ? { ...p, tasks: p.tasks.map(t => t.id === taskId ? { ...t, done } : t) }
       : p))
     const { error } = await supabase.from('tasks').update({ done }).eq('id', taskId)
-    if (error) { setProjects(prev); toast(SAVE_ERROR) }
+    if (error) { setProjects(ps => ps.map(p => p.id === projId ? { ...p, tasks: p.tasks.map(t => t.id === taskId ? { ...t, done: !done } : t) } : p)); toast(SAVE_ERROR) }
   }, [projects, toast])
 
   const deleteTask = useCallback(async (projId, taskId) => {
-    const prev = projects
+    const proj = projects.find(p => p.id === projId)
+    const removed = proj?.tasks.find(t => t.id === taskId)
+    if (!removed) return
     setProjects(ps => ps.map(p => p.id === projId
       ? { ...p, tasks: p.tasks.filter(t => t.id !== taskId) }
       : p))
     const { error } = await supabase.from('tasks').delete().eq('id', taskId)
-    if (error) { setProjects(prev); toast(SAVE_ERROR); return }
+    if (error) { setProjects(ps => ps.map(p => p.id === projId ? { ...p, tasks: [...p.tasks, removed].sort((a, b) => a.position - b.position) } : p)); toast(SAVE_ERROR); return }
     toast('Tarea eliminada')
   }, [projects, toast])
 
@@ -115,12 +124,12 @@ export function useProjects(userId) {
         .insert({ user_id: userId, name: p.name, type: p.type, status: p.status, descripcion: p.desc, notes: p.notes })
         .select()
         .single()
-      if (error) { toast('Error al importar'); return false }
+      if (error) { toast('Error al importar'); await refetch(); return false }
       if (p.tasks.length) {
         const { error: taskError } = await supabase.from('tasks').insert(
           p.tasks.map(t => ({ project_id: data.id, name: t.name, done: t.done, priority: t.priority, due_date: t.date, assignee: t.assignee, position: t.position })),
         )
-        if (taskError) { toast('Error al importar'); return false }
+        if (taskError) { toast('Error al importar'); await refetch(); return false }
       }
     }
     await refetch()
