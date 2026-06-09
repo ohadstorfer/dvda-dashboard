@@ -5,11 +5,15 @@ export default function TaskModal({ onClose, onSave }) {
   const [priority, setPriority] = useState('media')
   const [date, setDate] = useState('')
   const [assignee, setAssignee] = useState('')
+  const [busy, setBusy] = useState(false)
   const nameRef = useRef(null)
 
   async function save() {
-    if (!name.trim()) { nameRef.current.focus(); return }
+    if (!name.trim()) { nameRef.current?.focus(); return }
+    if (busy) return
+    setBusy(true)
     const ok = await onSave({ name: name.trim(), priority, date: date.trim(), assignee: assignee.trim() })
+    setBusy(false)
     if (ok) onClose()
   }
 
@@ -44,7 +48,7 @@ export default function TaskModal({ onClose, onSave }) {
         </div>
         <div className="modal-actions">
           <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary" onClick={save}>Agregar tarea</button>
+          <button className="btn btn-primary" onClick={save} disabled={busy}>Agregar tarea</button>
         </div>
       </div>
     </div>

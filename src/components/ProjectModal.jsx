@@ -5,11 +5,15 @@ export default function ProjectModal({ project, onClose, onSave }) {
   const [desc, setDesc] = useState(project?.desc || '')
   const [type, setType] = useState(project?.type || 'obra')
   const [status, setStatus] = useState(project?.status || 'active')
+  const [busy, setBusy] = useState(false)
   const nameRef = useRef(null)
 
   async function save() {
-    if (!name.trim()) { nameRef.current.focus(); return }
+    if (!name.trim()) { nameRef.current?.focus(); return }
+    if (busy) return
+    setBusy(true)
     const ok = await onSave({ name: name.trim(), desc: desc.trim(), type, status })
+    setBusy(false)
     if (ok) onClose()
   }
 
@@ -46,7 +50,7 @@ export default function ProjectModal({ project, onClose, onSave }) {
         </div>
         <div className="modal-actions">
           <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary" onClick={save}>
+          <button className="btn btn-primary" onClick={save} disabled={busy}>
             {project ? 'Guardar cambios' : 'Guardar proyecto'}
           </button>
         </div>
