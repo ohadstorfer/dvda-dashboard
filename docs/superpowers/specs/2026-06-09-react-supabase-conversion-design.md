@@ -18,6 +18,7 @@ Convert the single-file `gestor_proyectos.html` app into a Vite + React web app 
 | Data isolation | Multi-user: each user sees only their own projects (RLS) |
 | New users | Start with an empty workspace (no seed/demo data) |
 | Migration | Via existing backup export/import (export JSON from old HTML, import in new app) |
+| PWA | Installable via Safari "Add to Home Screen" (manifest + service worker). Push notifications deferred to a later phase |
 
 ## Supabase
 
@@ -117,6 +118,18 @@ Centered card on `--bg` background, same card styling (`--surface`, `--border`, 
 
 Before building: capture reference screenshots of the original HTML at 1280 / 800 / 375 px widths for list view and detail view (Playwright or similar). After each implementation phase, screenshot the React app at the same widths and compare; fix any drift before proceeding. This enforces the "never break desktop or mobile view" rule throughout the project.
 
+## PWA — installable on iPhone
+
+Users add the app from Safari via Share → "Add to Home Screen", getting an app icon that opens fullscreen like a native app.
+
+- **Web App Manifest** (`manifest.webmanifest`): name "Gestor de Proyectos", `display: standalone`, theme/background colors from the design palette (`#F7F6F2`), icons (192/512 px + Apple touch icon).
+- **iOS meta tags** in `index.html`: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-touch-icon`.
+- **Service worker**: minimal — required for installability and as the future hook for Web Push. App-shell caching only (network-first for everything; no offline data promises).
+- Implemented with `vite-plugin-pwa`.
+- **Hosting must be HTTPS** (any standard host: Vercel, Netlify, Cloudflare Pages).
+
+**Push notifications are deferred** to a later phase. The groundwork above (service worker, standalone install) is exactly what iOS 16.4+ Web Push requires; when added later it needs: a `push_subscriptions` table, VAPID keys, a Supabase Edge Function to send, and a defined trigger.
+
 ## Error handling
 
 - Failed mutations: revert optimistic change + toast "Error al guardar — reintentá".
@@ -133,7 +146,8 @@ Before building: capture reference screenshots of the original HTML at 1280 / 80
 ## Out of scope (YAGNI)
 
 - Realtime sync between sessions/devices (last write wins is fine).
-- Offline support.
+- Offline support (the service worker caches the app shell only, not data).
+- Push notifications (PWA install groundwork is in scope; sending pushes is a later phase).
 - Native iOS/Android apps.
 - Task editing modal (the HTML version only supports create/delete/toggle — parity preserved).
 - Password reset flow (can be added later via Supabase's built-in recovery).
