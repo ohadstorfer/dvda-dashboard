@@ -40,20 +40,20 @@ export default function LoginScreen() {
         {error && <div className="auth-error">{error}</div>}
         {info && <div className="auth-info">{info}</div>}
         <div className="form-group">
-          <label className="form-label">Email</label>
-          <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+          <label className="form-label" htmlFor="email">Email</label>
+          <input id="email" className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
         </div>
         <div className="form-group">
-          <label className="form-label">Contraseña</label>
-          <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+          <label className="form-label" htmlFor="password">Contraseña</label>
+          <input id="password" className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
         </div>
         <button className="btn btn-primary btn-block" disabled={busy} type="submit">
           {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
         </button>
         <div className="auth-toggle">
           {mode === 'login'
-            ? <>¿No tenés cuenta? <a onClick={() => switchMode('signup')}>Creá una</a></>
-            : <>¿Ya tenés cuenta? <a onClick={() => switchMode('login')}>Iniciá sesión</a></>}
+            ? <>¿No tenés cuenta? <button type="button" className="auth-link" onClick={() => switchMode('signup')}>Creá una</button></>
+            : <>¿Ya tenés cuenta? <button type="button" className="auth-link" onClick={() => switchMode('login')}>Iniciá sesión</button></>}
         </div>
       </form>
     </div>
