@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useProjects } from '../hooks/useProjects'
+import { parseBackup, serializeBackup, backupFilename } from '../lib/backup'
+import { useToast } from '../context/ToastContext'
 import Sidebar from './Sidebar'
 import ListView from './ListView'
 import ProjectDetail from './ProjectDetail'
@@ -12,6 +14,7 @@ export default function Dashboard({ userId }) {
   const [modal, setModal] = useState(null)
   // shapes: {kind:'new-project'} | {kind:'edit-project', project} | {kind:'new-task', projectId}
   const data = useProjects(userId)
+  const toast = useToast()
   const selected = data.projects.find(p => p.id === selectedId) || null
 
   function handleSetView(v) {
@@ -25,6 +28,30 @@ export default function Dashboard({ userId }) {
     data.deleteProject(id)
   }
 
+  function handleExport() {
+    const blob = new Blob([serializeBackup(data.projects)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = backupFilename()
+    a.click()
+    URL.revokeObjectURL(url)
+    toast('Backup exportado ✓')
+  }
+
+  function handleImportFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const parsed = parseBackup(ev.target.result)
+      if (!parsed) { toast('Archivo inválido'); return }
+      await data.importBackup(parsed)
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
   if (data.loading) return null
 
   return (
@@ -34,8 +61,8 @@ export default function Dashboard({ userId }) {
         view={view}
         detailOpen={!!selected}
         onSetView={handleSetView}
-        onExport={() => {}}
-        onImportFile={() => {}}
+        onExport={handleExport}
+        onImportFile={handleImportFile}
       />
       <main className="main">
         {data.loadError ? (
