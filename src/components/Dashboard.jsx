@@ -48,6 +48,7 @@ export default function Dashboard({ userId }) {
       if (!parsed) { toast('Archivo inválido'); return }
       await data.importBackup(parsed)
     }
+    reader.onerror = () => toast('No se pudo leer el archivo')
     reader.readAsText(file)
     e.target.value = ''
   }
