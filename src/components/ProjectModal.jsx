@@ -12,9 +12,12 @@ export default function ProjectModal({ project, onClose, onSave }) {
     if (!name.trim()) { nameRef.current?.focus(); return }
     if (busy) return
     setBusy(true)
-    const ok = await onSave({ name: name.trim(), desc: desc.trim(), type, status })
-    setBusy(false)
-    if (ok) onClose()
+    try {
+      const ok = await onSave({ name: name.trim(), desc: desc.trim(), type, status })
+      if (ok) onClose()
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
