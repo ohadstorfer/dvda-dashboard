@@ -10,7 +10,7 @@ export function projectFromRow(row) {
   return {
     id: row.id, name: row.name, type: row.type, status: row.status,
     desc: row.descripcion, notes: row.notes,
-    createdAt: new Date(row.created_at).toLocaleDateString('es-AR'),
+    createdAt: row.created_at ? new Date(row.created_at).toLocaleDateString('es-AR') : '',
     tasks,
   }
 }

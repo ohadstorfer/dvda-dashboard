@@ -28,4 +28,8 @@ describe('projectFromRow', () => {
     const p = projectFromRow({ id: 'p1', name: 'X', type: 'obra', status: 'active', descripcion: '', notes: '', created_at: '2026-06-09T12:00:00Z' })
     expect(p.tasks).toEqual([])
   })
+  it('returns empty createdAt when created_at is missing', () => {
+    const p = projectFromRow({ id: 'p1', name: 'X', type: 'obra', status: 'active', descripcion: '', notes: '' })
+    expect(p.createdAt).toBe('')
+  })
 })

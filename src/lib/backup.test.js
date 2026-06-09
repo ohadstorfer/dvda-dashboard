@@ -27,6 +27,19 @@ describe('parseBackup', () => {
     const out = parseBackup(JSON.stringify([{ name: 'X', tasks: [{ name: '' }, { name: 'ok' }] }]))
     expect(out[0].tasks).toHaveLength(1)
   })
+  it('skips null or non-object entries instead of crashing', () => {
+    const out = parseBackup('[null, 5, {"name":"X"}]')
+    expect(out).toHaveLength(1)
+    expect(out[0].name).toBe('X')
+  })
+  it('skips null task entries instead of crashing', () => {
+    const out = parseBackup(JSON.stringify([{ name: 'X', tasks: [null, { name: 'ok' }] }]))
+    expect(out[0].tasks).toEqual([{ name: 'ok', done: false, priority: 'media', date: '', assignee: '', position: 0 }])
+  })
+  it('renumbers positions after dropping nameless tasks', () => {
+    const out = parseBackup(JSON.stringify([{ name: 'X', tasks: [{ name: '' }, { name: 'a' }, { name: 'b' }] }]))
+    expect(out[0].tasks.map(t => t.position)).toEqual([0, 1])
+  })
 })
 
 describe('serializeBackup', () => {
