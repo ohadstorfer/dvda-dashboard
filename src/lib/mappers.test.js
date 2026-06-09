@@ -8,6 +8,10 @@ describe('taskFromRow', () => {
       due_date: '12/06', assignee: 'Ana', position: 2,
     })).toEqual({ id: 't1', name: 'Comprar hierro', done: false, priority: 'media', date: '12/06', assignee: 'Ana', position: 2 })
   })
+  it('defaults null priority to media', () => {
+    const t = taskFromRow({ id: 't1', name: 'X', done: false, priority: null, due_date: '', assignee: '', position: 0 })
+    expect(t.priority).toBe('media')
+  })
 })
 
 describe('projectFromRow', () => {
@@ -31,5 +35,9 @@ describe('projectFromRow', () => {
   it('returns empty createdAt when created_at is missing', () => {
     const p = projectFromRow({ id: 'p1', name: 'X', type: 'obra', status: 'active', descripcion: '', notes: '' })
     expect(p.createdAt).toBe('')
+  })
+  it('defaults null notes to empty string', () => {
+    const p = projectFromRow({ id: 'p1', name: 'X', type: 'obra', status: 'active', descripcion: '', notes: null, created_at: '2026-06-09T12:00:00Z' })
+    expect(p.notes).toBe('')
   })
 })
