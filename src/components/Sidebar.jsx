@@ -1,10 +1,12 @@
 import { useRef } from 'react'
 import { getCounts } from '../lib/logic'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 
 export default function Sidebar({ projects, view, detailOpen, onSetView, onExport, onImportFile }) {
   const counts = getCounts(projects)
   const fileRef = useRef(null)
+  const toast = useToast()
 
   const navItem = (key, icon, label) => (
     <div className={'nav-item' + (view === key && !detailOpen ? ' active' : '')} onClick={() => onSetView(key)}>
@@ -37,7 +39,10 @@ export default function Sidebar({ projects, view, detailOpen, onSetView, onExpor
           <span>⬆</span> Importar backup
         </button>
         <input type="file" ref={fileRef} accept=".json" style={{ display: 'none' }} onChange={onImportFile} />
-        <button className="sidebar-action" onClick={() => supabase.auth.signOut()}>
+        <button className="sidebar-action" onClick={async () => {
+          const { error } = await supabase.auth.signOut()
+          if (error) toast('Error al cerrar sesión — reintentá')
+        }}>
           <span>→</span> Cerrar sesión
         </button>
       </div>
