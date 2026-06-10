@@ -1,7 +1,7 @@
 import { getFiltered, VIEW_LABELS } from '../lib/logic'
 import ProjectCard from './ProjectCard'
 
-export default function ListView({ projects, view, onSelect, onNewProject, onOpenMenu }) {
+export default function ListView({ projects, view, onSelect, onNewProject, onOpenMenu, menuBtnRef }) {
   const ps = getFiltered(projects, view)
   const allTasks = projects.flatMap(p => p.tasks)
   const pending = allTasks.filter(t => !t.done).length
@@ -12,7 +12,7 @@ export default function ListView({ projects, view, onSelect, onNewProject, onOpe
     <>
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="menu-btn" onClick={onOpenMenu} aria-label="Abrir menú" aria-haspopup="dialog">☰</button>
+          <button ref={menuBtnRef} className="menu-btn" onClick={onOpenMenu} aria-label="Abrir menú" aria-haspopup="dialog">☰</button>
           <div>
             <div className="page-title">{VIEW_LABELS[view]}</div>
             <div className="page-subtitle">

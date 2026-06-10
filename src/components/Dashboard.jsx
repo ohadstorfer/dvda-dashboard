@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useProjects } from '../hooks/useProjects'
 import { parseBackup, serializeBackup, backupFilename } from '../lib/backup'
 import { useToast } from '../context/ToastContext'
@@ -16,15 +16,34 @@ export default function Dashboard({ userId }) {
   // shapes: {kind:'new-project'} | {kind:'edit-project', project} | {kind:'new-task', projectId}
   const data = useProjects(userId)
   const toast = useToast()
+  const menuBtnRef = useRef(null)
+  const drawerRef = useRef(null)
+
+  // Manage inert attribute imperatively — React 18.3 doesn't reliably render
+  // inert={undefined} as absent, so we set/remove via the DOM directly.
+  // data.loading is included so the effect re-runs once the drawer mounts.
+  useEffect(() => {
+    const el = drawerRef.current
+    if (!el) return
+    if (drawerOpen) {
+      el.removeAttribute('inert')
+    } else {
+      el.setAttribute('inert', '')
+    }
+  }, [drawerOpen, data.loading])
 
   useEffect(() => {
     if (!drawerOpen) return
     const onKey = e => { if (e.key === 'Escape') setDrawerOpen(false) }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
+    // Focus first focusable element inside the drawer when it opens
+    drawerRef.current?.querySelector('button')?.focus()
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
+      // Return focus to the menu button when the drawer closes
+      menuBtnRef.current?.focus()
     }
   }, [drawerOpen])
   const selected = data.projects.find(p => p.id === selectedId) || null
@@ -77,7 +96,14 @@ export default function Dashboard({ userId }) {
         onExport={handleExport}
         onImportFile={handleImportFile}
       />
-      <div className="drawer" aria-hidden={!drawerOpen}>
+      <div
+        ref={drawerRef}
+        className="drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú de navegación"
+        aria-hidden={!drawerOpen || undefined}
+      >
         <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} />
         <Sidebar
           projects={data.projects}
@@ -117,6 +143,7 @@ export default function Dashboard({ userId }) {
             onSelect={setSelectedId}
             onNewProject={() => setModal({ kind: 'new-project' })}
             onOpenMenu={() => setDrawerOpen(true)}
+            menuBtnRef={menuBtnRef}
           />
         )}
       </main>

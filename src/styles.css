@@ -483,14 +483,14 @@
     width: 280px;
     z-index: 95;
     transform: translateX(-100%);
-    /* exit: fast, strong ease-out */
-    transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 250ms ease;
+    box-shadow: var(--shadow-md);
+    /* exit: fast, strong ease-out — transform only (no paint-triggering shadow anim) */
+    transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
   }
   .drawer-open .drawer .sidebar {
     transform: translateX(0);
-    box-shadow: var(--shadow-md);
     /* enter: iOS-like drawer curve, slightly slower than exit */
-    transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 350ms ease;
+    transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 }
 
@@ -511,7 +511,7 @@
 /* touch devices: actions can't rely on hover */
 @media (hover: none) {
   .task-actions { opacity: 1; }
-  .btn:active { transform: scale(0.97); }
+  .btn:active { transform: scale(0.97); transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1); }
   .project-card:active { transform: scale(0.99); transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
   .nav-item:active, .sidebar-action:active { background: var(--surface2); }
 }
