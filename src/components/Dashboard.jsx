@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useProjects } from '../hooks/useProjects'
 import { parseBackup, serializeBackup, backupFilename } from '../lib/backup'
 import { useToast } from '../context/ToastContext'
@@ -12,9 +12,21 @@ export default function Dashboard({ userId }) {
   const [view, setView] = useState('all')
   const [selectedId, setSelectedId] = useState(null)
   const [modal, setModal] = useState(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   // shapes: {kind:'new-project'} | {kind:'edit-project', project} | {kind:'new-task', projectId}
   const data = useProjects(userId)
   const toast = useToast()
+
+  useEffect(() => {
+    if (!drawerOpen) return
+    const onKey = e => { if (e.key === 'Escape') setDrawerOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [drawerOpen])
   const selected = data.projects.find(p => p.id === selectedId) || null
 
   function handleSetView(v) {
@@ -56,7 +68,7 @@ export default function Dashboard({ userId }) {
   if (data.loading) return null
 
   return (
-    <div className="layout">
+    <div className={'layout' + (drawerOpen ? ' drawer-open' : '')}>
       <Sidebar
         projects={data.projects}
         view={view}
@@ -65,6 +77,18 @@ export default function Dashboard({ userId }) {
         onExport={handleExport}
         onImportFile={handleImportFile}
       />
+      <div className="drawer" aria-hidden={!drawerOpen}>
+        <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} />
+        <Sidebar
+          projects={data.projects}
+          view={view}
+          detailOpen={!!selected}
+          onSetView={handleSetView}
+          onExport={handleExport}
+          onImportFile={handleImportFile}
+          onNavigate={() => setDrawerOpen(false)}
+        />
+      </div>
       <main className="main">
         {data.loadError ? (
           <div className="empty">
@@ -92,6 +116,7 @@ export default function Dashboard({ userId }) {
             view={view}
             onSelect={setSelectedId}
             onNewProject={() => setModal({ kind: 'new-project' })}
+            onOpenMenu={() => setDrawerOpen(true)}
           />
         )}
       </main>

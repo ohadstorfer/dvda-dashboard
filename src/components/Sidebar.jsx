@@ -3,13 +3,13 @@ import { getCounts } from '../lib/logic'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 
-export default function Sidebar({ projects, view, detailOpen, onSetView, onExport, onImportFile }) {
+export default function Sidebar({ projects, view, detailOpen, onSetView, onExport, onImportFile, onNavigate }) {
   const counts = getCounts(projects)
   const fileRef = useRef(null)
   const toast = useToast()
 
   const navItem = (key, icon, label) => (
-    <div className={'nav-item' + (view === key && !detailOpen ? ' active' : '')} onClick={() => onSetView(key)}>
+    <div className={'nav-item' + (view === key && !detailOpen ? ' active' : '')} onClick={() => { onSetView(key); onNavigate?.() }}>
       <span className="nav-icon">{icon}</span> {label}
       <span className="nav-count">{counts[key]}</span>
     </div>

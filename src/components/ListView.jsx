@@ -1,7 +1,7 @@
 import { getFiltered, VIEW_LABELS } from '../lib/logic'
 import ProjectCard from './ProjectCard'
 
-export default function ListView({ projects, view, onSelect, onNewProject }) {
+export default function ListView({ projects, view, onSelect, onNewProject, onOpenMenu }) {
   const ps = getFiltered(projects, view)
   const allTasks = projects.flatMap(p => p.tasks)
   const pending = allTasks.filter(t => !t.done).length
@@ -11,10 +11,13 @@ export default function ListView({ projects, view, onSelect, onNewProject }) {
   return (
     <>
       <div className="page-header">
-        <div>
-          <div className="page-title">{VIEW_LABELS[view]}</div>
-          <div className="page-subtitle">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button className="menu-btn" onClick={onOpenMenu} aria-label="Abrir menú" aria-haspopup="dialog">☰</button>
+          <div>
+            <div className="page-title">{VIEW_LABELS[view]}</div>
+            <div className="page-subtitle">
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
           </div>
         </div>
         <button className="btn btn-primary" onClick={onNewProject}>+ Nuevo proyecto</button>
